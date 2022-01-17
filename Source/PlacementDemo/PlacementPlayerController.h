@@ -51,4 +51,10 @@ public: // properties
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category=Camera)
 	float BaseZoomRate;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category=Camera)
+	float MinViewPitchDegrees;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category=Camera)
+	float MaxViewPitchDegrees;
 };

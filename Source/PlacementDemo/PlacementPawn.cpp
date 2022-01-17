@@ -45,10 +45,10 @@ void APlacementPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void APlacementPawn::Zoom(float Rate)
 {
-	FVector ForwardVector = TopdownCamera->GetForwardVector();
-	FVector CurrentLocation = TopdownCamera->GetRelativeLocation();
-	FVector NewLocation = CurrentLocation - CurrentLocation.GetSafeNormal() * Rate;
-	TopdownCamera->SetRelativeLocation(NewLocation.GetClampedToSize(MinZoomDistance, MaxZoomDistance));
+	const FVector ForwardVector = TopdownCamera->GetForwardVector();
+	const FVector CurrentLocation = TopdownCamera->GetRelativeLocation();
+	const FVector NewLocation = CurrentLocation - CurrentLocation.GetSafeNormal() * Rate;
+	TopdownCamera->SetRelativeLocation(NewLocation.GetAbs().GetClampedToSize(MinZoomDistance, MaxZoomDistance));
 	
 	UE_LOG(LogTemp, Warning, TEXT("Forward: %s, Rate: %f"), *ForwardVector.ToString(), Rate);
 }

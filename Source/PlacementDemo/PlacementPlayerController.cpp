@@ -5,13 +5,14 @@
 
 #include "DrawDebugHelpers.h"
 #include "PlacementPawn.h"
-#include "Blueprint/WidgetLayoutLibrary.h"
 
 APlacementPlayerController::APlacementPlayerController()
 {
 	BaseZoomRate = 70.f;
-	BaseLookUpRate = 1.f;
+	BaseLookUpRate = 2.f;
 	BaseTurnRate = 1.f;
+	MinViewPitchDegrees = -30.f;
+	MaxViewPitchDegrees = 50.f;
 }
 
 void APlacementPlayerController::BeginPlay()
@@ -148,7 +149,10 @@ void APlacementPlayerController::LookUp(float Rate)
 {
 	if (bIsViewOrbitingActive)
 	{
-		AddPitchInput(Rate * BaseLookUpRate);
+		const FRotator CurrentControlRotation = GetControlRotation();
+		float NewPitch = CurrentControlRotation.Pitch + Rate * BaseLookUpRate; 
+		NewPitch = FMath::ClampAngle(NewPitch, MinViewPitchDegrees, MaxViewPitchDegrees);
+		SetControlRotation(FRotator(NewPitch, CurrentControlRotation.Yaw, CurrentControlRotation.Roll));
 	}
 }
 

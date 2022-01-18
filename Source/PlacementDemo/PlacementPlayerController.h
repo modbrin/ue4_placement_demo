@@ -24,12 +24,15 @@ public: // methods
 	void LookUp(float Rate);
 	void Turn(float Rate);
 	void Zoom(float Rate);
-	void TraceMouseLocation();
+	TOptional<FVector> TraceMouseLocationToActor(FName Tag) const;
 	TOptional<FVector> TraceMouseLocationOnGroundPlane(float AcceptableTraceDistance = 10000.f) const;
 	void PerformViewMovement();
 	void SetViewMovement(bool Enabled);
 	void SetViewOrbiting(bool Enabled);
-	
+	void SetPlacementMode(bool Enabled);
+	void PerformObjectPlacement();
+	void FinalizePlacement();
+
 public: // properties
 	TOptional<FVector> GroundPointBeforeMovement{};
 	TOptional<FVector> LastGroundTraceLocation{};
@@ -42,6 +45,9 @@ public: // properties
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	bool bIsViewOrbitingActive = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
+	bool bIsPlacementActive = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category=Camera)
 	float BaseTurnRate;
@@ -57,4 +63,10 @@ public: // properties
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category=Camera)
 	float MaxViewPitchDegrees;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Placement)
+	AActor* SelectedPlacementActor;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Placement)
+	TSubclassOf<AActor> PlacementActorClass;
 };

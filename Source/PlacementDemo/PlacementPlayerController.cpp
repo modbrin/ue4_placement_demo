@@ -4,7 +4,11 @@
 #include "PlacementPlayerController.h"
 
 #include "DrawDebugHelpers.h"
+#include "InGameUI.h"
+#include "PlacementDemoGameInstance.h"
 #include "PlacementPawn.h"
+#include "PlacementPreview.h"
+#include "Blueprint/UserWidget.h"
 
 APlacementPlayerController::APlacementPlayerController()
 {
@@ -17,15 +21,28 @@ APlacementPlayerController::APlacementPlayerController()
 
 void APlacementPlayerController::BeginPlay()
 {
-	UE_LOG(LogTemp, Warning, TEXT(__FUNCTION__));
-
 	Super::BeginPlay();
 
+	// Setup mouse behavior
 	FInputModeGameAndUI InputMode;
 	InputMode.SetHideCursorDuringCapture(false);
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	SetShowMouseCursor(true);
 	SetInputMode(InputMode);
+
+
+	UPlacementDemoGameInstance* GI = Cast<UPlacementDemoGameInstance>(GetGameInstance());
+	if (GI != nullptr)
+	{
+		UInGameUI* UI = GI->GetInGameUI();
+		if (UI != nullptr)
+		{
+			UI->ButtonClickedDelegate.BindLambda([this]()
+			{
+				this->SetPlacementMode(true);
+			});
+		}
+	}
 }
 
 void APlacementPlayerController::SetupInputComponent()
@@ -36,6 +53,9 @@ void APlacementPlayerController::SetupInputComponent()
 	InputComponent->BindAction<FCustomInputDelegate>("SetViewMovement", IE_Released, this, &APlacementPlayerController::SetViewMovement, false);
 	InputComponent->BindAction<FCustomInputDelegate>("SetViewOrbiting", IE_Pressed, this, &APlacementPlayerController::SetViewOrbiting, true);
 	InputComponent->BindAction<FCustomInputDelegate>("SetViewOrbiting", IE_Released, this, &APlacementPlayerController::SetViewOrbiting, false);
+	InputComponent->BindAction<FCustomInputDelegate>("CancelAction", IE_Pressed, this, &APlacementPlayerController::SetPlacementMode, false);
+	InputComponent->BindAction("MainAction", IE_Pressed, this, &APlacementPlayerController::FinalizePlacement);
+
 	InputComponent->BindAxis("Turn", this, &APlacementPlayerController::Turn);
 	InputComponent->BindAxis("LookUp", this, &APlacementPlayerController::LookUp);
 	InputComponent->BindAxis("Zoom", this, &APlacementPlayerController::Zoom);
@@ -49,38 +69,42 @@ void APlacementPlayerController::Tick(float DeltaSeconds)
 	{
 		PerformViewMovement();
 	}
+
+	if (bIsPlacementActive)
+	{
+		PerformObjectPlacement();
+	}
 }
 
-void APlacementPlayerController::TraceMouseLocation()
+TOptional<FVector> APlacementPlayerController::TraceMouseLocationToActor(FName Tag) const
 {
 	FVector CursorLocation;
 	FVector CursorDirection;
 	DeprojectMousePositionToWorld(CursorLocation, CursorDirection);
-
 	FVector EndTrace = CursorLocation + CursorDirection * 10000.0f;
 	
 	FHitResult OutHit(ForceInit);
 	UWorld* World = GetWorld();
-	
-	const FName TraceTag("MyTraceTag");
-	World->DebugDrawTraceTag = TraceTag;
+
 	FCollisionQueryParams CollisionParams;
+	const FName TraceTag("PlacementPreviewTraceTag");
+	World->DebugDrawTraceTag = TraceTag;
 	CollisionParams.TraceTag = TraceTag;
 	
-	World->LineTraceSingleByChannel(OutHit, CursorLocation, EndTrace, ECollisionChannel::ECC_WorldStatic, CollisionParams);
-	// World->LineTraceSingleByObjectType()
+	FCollisionObjectQueryParams CollisionObjectParams;
+	CollisionObjectParams.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldStatic);
 	
+	World->LineTraceSingleByObjectType(OutHit, CursorLocation, EndTrace, CollisionObjectParams, CollisionParams);
+
 	AActor* HitActor = OutHit.GetActor();
-	if (HitActor != nullptr)
+	if (HitActor != nullptr && HitActor->ActorHasTag(Tag))
 	{
-		LastGroundTraceLocation.Emplace(OutHit.Location);
+		return TOptional<FVector>(OutHit.Location);
 	}
 	else
 	{
-		LastGroundTraceLocation.Reset();
+		return TOptional<FVector>();
 	}
-
-	
 }
 
 TOptional<FVector> APlacementPlayerController::TraceMouseLocationOnGroundPlane(float AcceptableTraceDistance) const
@@ -143,6 +167,78 @@ void APlacementPlayerController::SetViewMovement(bool Enabled)
 void APlacementPlayerController::SetViewOrbiting(bool Enabled)
 {
 	bIsViewOrbitingActive = Enabled;
+}
+
+void APlacementPlayerController::SetPlacementMode(bool Enabled)
+{
+	UWorld* World = GetWorld();
+	if (World != nullptr)
+	{
+		// bIsPlacementActive = Enabled;
+		if (Enabled)
+		{
+			if (PlacementActorClass != nullptr && SelectedPlacementActor == nullptr)
+			{
+				FVector StartingPoint = TraceMouseLocationToActor(TEXT("Ground")).Get(FVector());
+				SelectedPlacementActor = World->SpawnActor(PlacementActorClass, &StartingPoint);
+				bIsPlacementActive = true;
+			}
+		}
+		else
+		{
+			if (SelectedPlacementActor != nullptr)
+			{
+				SelectedPlacementActor->Destroy();
+				SelectedPlacementActor = nullptr;
+				bIsPlacementActive = false;
+			}
+		}
+	}
+	
+}
+
+void APlacementPlayerController::PerformObjectPlacement()
+{
+	TOptional<FVector> TracePoint = TraceMouseLocationToActor(TEXT("Ground"));
+
+	if (SelectedPlacementActor != nullptr)
+	{
+		APlacementPreview* Actor = Cast<APlacementPreview>(SelectedPlacementActor); // TODO: decide correct way to set visibility
+		if (TracePoint.IsSet())
+		{
+			SelectedPlacementActor->SetActorLocation(TracePoint.GetValue());
+			if (Actor != nullptr && Actor->Mesh != nullptr)
+			{
+				Actor->Mesh->SetVisibility(true);
+			}
+		}
+		else
+		{
+			if (Actor != nullptr && Actor->Mesh != nullptr)
+			{
+				Actor->Mesh->SetVisibility(false);
+			}
+		}
+	}
+}
+
+void APlacementPlayerController::FinalizePlacement()
+{
+	if (!bIsPlacementActive) return;
+	
+	UWorld* World = GetWorld();
+	if (World != nullptr)
+	{
+		if (PlacementActorClass != nullptr)
+		{
+			TOptional<FVector> TargetPoint = TraceMouseLocationToActor(TEXT("Ground"));
+			if (TargetPoint.IsSet())
+			{
+				World->SpawnActor(PlacementActorClass, &TargetPoint.GetValue());
+				SetPlacementMode(false);
+			}
+		}
+	}
 }
 
 void APlacementPlayerController::LookUp(float Rate)

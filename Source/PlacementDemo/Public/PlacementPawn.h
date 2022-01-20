@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Zoomable.h"
+#include "Interfaces/Zoomable.h"
 #include "GameFramework/Pawn.h"
 #include "PlacementPawn.generated.h"
 

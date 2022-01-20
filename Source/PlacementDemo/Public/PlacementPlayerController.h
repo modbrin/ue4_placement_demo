@@ -3,7 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ItemPalette.h"
+#include "PlacementPreview.h"
 #include "GameFramework/PlayerController.h"
+#include "Interfaces/PaletteActionsHandler.h"
 #include "PlacementPlayerController.generated.h"
 
 
@@ -12,7 +15,7 @@ DECLARE_DELEGATE_OneParam(FCustomInputDelegate, const bool);
  * 
  */
 UCLASS()
-class PLACEMENTDEMO_API APlacementPlayerController : public APlayerController
+class PLACEMENTDEMO_API APlacementPlayerController : public APlayerController, public IPaletteActionsHandler
 {
 	GENERATED_BODY()
 public: // methods
@@ -30,8 +33,9 @@ public: // methods
 	void SetViewMovement(bool Enabled);
 	void SetViewOrbiting(bool Enabled);
 	void SetPlacementMode(bool Enabled);
-	void PerformObjectPlacement();
+	void PerformPlacementPreview();
 	void FinalizePlacement();
+	virtual void PaletteItemSelected(const UPaletteEntry* Entry) override;
 
 public: // properties
 	TOptional<FVector> GroundPointBeforeMovement{};
@@ -64,9 +68,13 @@ public: // properties
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category=Camera)
 	float MaxViewPitchDegrees;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Placement)
-	AActor* SelectedPlacementActor;
+	TSubclassOf<AMapEntity> PlacementActorClass;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Placement)
-	TSubclassOf<AActor> PlacementActorClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category=PlacementPreview)
+	TSubclassOf<APlacementPreview> PlacementPreviewActorClass;
+	
+	UStaticMesh* PlacementPreviewMesh;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=PlacementPreview)
+	APlacementPreview* PlacementPreviewActor;
 };

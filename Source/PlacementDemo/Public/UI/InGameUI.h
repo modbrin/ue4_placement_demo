@@ -15,18 +15,20 @@ UCLASS()
 class PLACEMENTDEMO_API UInGameUI : public UUserWidget
 {
 	GENERATED_BODY()
-public:
-	// virtual bool Initialize() override;
-
+protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
+public: // methods
 	UFUNCTION()
 	void DispatchButtonEvent();
 
-public:
+public: // properties
 	UPROPERTY(meta = (BindWidget))
 	class UButton* ActivatePlacementButton;
+
+	UPROPERTY(meta = (BindWidget))
+	class UListView* PaletteListView;
 
 	FPlacementButtonClickedSignature ButtonClickedDelegate;
 };

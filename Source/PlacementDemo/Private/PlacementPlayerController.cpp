@@ -4,7 +4,7 @@
 #include "PlacementPlayerController.h"
 
 #include "DrawDebugHelpers.h"
-#include "InGameUI.h"
+#include "UI/InGameUI.h"
 #include "PlacementDemoGameInstance.h"
 #include "PlacementPawn.h"
 #include "PlacementPreview.h"
@@ -72,7 +72,7 @@ void APlacementPlayerController::Tick(float DeltaSeconds)
 
 	if (bIsPlacementActive)
 	{
-		PerformObjectPlacement();
+		PerformPlacementPreview();
 	}
 }
 
@@ -88,7 +88,7 @@ TOptional<FVector> APlacementPlayerController::TraceMouseLocationToActor(FName T
 
 	FCollisionQueryParams CollisionParams;
 	const FName TraceTag("PlacementPreviewTraceTag");
-	World->DebugDrawTraceTag = TraceTag;
+	// World->DebugDrawTraceTag = TraceTag;
 	CollisionParams.TraceTag = TraceTag;
 	
 	FCollisionObjectQueryParams CollisionObjectParams;
@@ -174,22 +174,31 @@ void APlacementPlayerController::SetPlacementMode(bool Enabled)
 	UWorld* World = GetWorld();
 	if (World != nullptr)
 	{
-		// bIsPlacementActive = Enabled;
 		if (Enabled)
 		{
-			if (PlacementActorClass != nullptr && SelectedPlacementActor == nullptr)
+			if (PlacementActorClass != nullptr && PlacementPreviewActorClass != nullptr && PlacementPreviewActor == nullptr)
 			{
-				FVector StartingPoint = TraceMouseLocationToActor(TEXT("Ground")).Get(FVector());
-				SelectedPlacementActor = World->SpawnActor(PlacementActorClass, &StartingPoint);
-				bIsPlacementActive = true;
+				const FVector StartingPoint = TraceMouseLocationToActor(TEXT("Ground")).Get(FVector());
+				AActor* SpawnedActor = World->SpawnActor(PlacementPreviewActorClass, &StartingPoint);
+				APlacementPreview* PreviewActor = Cast<APlacementPreview>(SpawnedActor);
+				if (PreviewActor != nullptr && PreviewActor->Mesh != nullptr && PlacementPreviewMesh != nullptr)
+				{
+					PreviewActor->Mesh->SetStaticMesh(PlacementPreviewMesh);
+					PlacementPreviewActor = PreviewActor;
+					bIsPlacementActive = true;
+				}
+				else
+				{
+					SpawnedActor->Destroy();
+				}
 			}
 		}
 		else
 		{
-			if (SelectedPlacementActor != nullptr)
+			if (PlacementPreviewActor != nullptr)
 			{
-				SelectedPlacementActor->Destroy();
-				SelectedPlacementActor = nullptr;
+				PlacementPreviewActor->Destroy();
+				PlacementPreviewActor = nullptr;
 				bIsPlacementActive = false;
 			}
 		}
@@ -197,27 +206,20 @@ void APlacementPlayerController::SetPlacementMode(bool Enabled)
 	
 }
 
-void APlacementPlayerController::PerformObjectPlacement()
+void APlacementPlayerController::PerformPlacementPreview()
 {
 	TOptional<FVector> TracePoint = TraceMouseLocationToActor(TEXT("Ground"));
 
-	if (SelectedPlacementActor != nullptr)
+	if (PlacementPreviewActor != nullptr && PlacementPreviewActor->Mesh != nullptr)
 	{
-		APlacementPreview* Actor = Cast<APlacementPreview>(SelectedPlacementActor); // TODO: decide correct way to set visibility
 		if (TracePoint.IsSet())
 		{
-			SelectedPlacementActor->SetActorLocation(TracePoint.GetValue());
-			if (Actor != nullptr && Actor->Mesh != nullptr)
-			{
-				Actor->Mesh->SetVisibility(true);
-			}
+			PlacementPreviewActor->SetActorLocation(TracePoint.GetValue());
+			PlacementPreviewActor->Mesh->SetVisibility(true);
 		}
 		else
 		{
-			if (Actor != nullptr && Actor->Mesh != nullptr)
-			{
-				Actor->Mesh->SetVisibility(false);
-			}
+			PlacementPreviewActor->Mesh->SetVisibility(false);
 		}
 	}
 }
@@ -234,10 +236,20 @@ void APlacementPlayerController::FinalizePlacement()
 			TOptional<FVector> TargetPoint = TraceMouseLocationToActor(TEXT("Ground"));
 			if (TargetPoint.IsSet())
 			{
-				World->SpawnActor(PlacementActorClass, &TargetPoint.GetValue());
+				AActor* PlacedActor = World->SpawnActor(PlacementActorClass, &TargetPoint.GetValue());
 				SetPlacementMode(false);
 			}
 		}
+	}
+}
+
+void APlacementPlayerController::PaletteItemSelected(const UPaletteEntry* Entry)
+{
+	if (Entry != nullptr && !bIsPlacementActive)
+	{
+		PlacementActorClass = Entry->MapEntityClass;
+		PlacementPreviewMesh = Entry->PreviewMesh;
+		SetPlacementMode(true);
 	}
 }
 

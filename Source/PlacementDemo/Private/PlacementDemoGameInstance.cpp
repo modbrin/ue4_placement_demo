@@ -3,10 +3,10 @@
 
 #include "PlacementDemoGameInstance.h"
 
-#include "InGameUI.h"
+#include "UI/InGameUI.h"
 #include "Blueprint/UserWidget.h"
 
-UPlacementDemoGameInstance::UPlacementDemoGameInstance(const FObjectInitializer& Objectinitializer)
+UPlacementDemoGameInstance::UPlacementDemoGameInstance()
 {
 	static ConstructorHelpers::FClassFinder<UUserWidget> InGameUIBPClass(TEXT("WidgetBlueprint'/Game/PlacementDemo/HUD/WBP_InGameUI.WBP_InGameUI_C'"));
 
@@ -20,7 +20,7 @@ UPlacementDemoGameInstance::UPlacementDemoGameInstance(const FObjectInitializer&
 	}
 }
 
-void UPlacementDemoGameInstance::LoadInGameUI()
+void UPlacementDemoGameInstance::LoadUI()
 {
 	if (InGameUIClass != nullptr)
 	{
@@ -30,9 +30,4 @@ void UPlacementDemoGameInstance::LoadInGameUI()
 			InGameUI->AddToViewport();
 		}
 	}
-}
-
-void UPlacementDemoGameInstance::OnLoadInGameMenu_Implementation()
-{
-	LoadInGameUI();
 }

@@ -11,6 +11,8 @@
 
 
 DECLARE_DELEGATE_OneParam(FCustomInputDelegate, const bool);
+DECLARE_MULTICAST_DELEGATE_OneParam(FPlacementStateChangedSignature, const bool);
+
 /**
  * 
  */
@@ -73,8 +75,13 @@ public: // properties
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category=PlacementPreview)
 	TSubclassOf<APlacementPreview> PlacementPreviewActorClass;
 	
-	UStaticMesh* PlacementPreviewMesh;
+	TWeakObjectPtr<UStaticMesh> PlacementPreviewMesh;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=PlacementPreview)
 	APlacementPreview* PlacementPreviewActor;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Grid)
+	int GridSize;
+
+	FPlacementStateChangedSignature PlacementStateChangedDelegate;
 };

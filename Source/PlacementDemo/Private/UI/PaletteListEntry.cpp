@@ -15,8 +15,9 @@ void UPaletteListEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 	{
 		FButtonStyle ButtonStyle;
 		FSlateBrush NormalBrush = UWidgetBlueprintLibrary::MakeBrushFromTexture(EntryData->Icon);
+		FSlateBrush HoverBrush = UWidgetBlueprintLibrary::MakeBrushFromTexture(EntryData->IconHover);
 		ButtonStyle.SetNormal(NormalBrush);
-		ButtonStyle.SetHovered(NormalBrush);
+		ButtonStyle.SetHovered(HoverBrush);
 		ButtonStyle.SetPressed(NormalBrush);
 		ButtonStyle.SetDisabled(NormalBrush);
 		PaletteItemButton->SetStyle(ButtonStyle);

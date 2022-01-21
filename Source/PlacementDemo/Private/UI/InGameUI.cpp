@@ -10,8 +10,6 @@
 void UInGameUI::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	ActivatePlacementButton->OnClicked.AddDynamic(this, &UInGameUI::DispatchButtonEvent);
 	
 	UPlacementDemoGameInstance* GI = Cast<UPlacementDemoGameInstance>(GetGameInstance());
 	if (GI != nullptr)
@@ -25,12 +23,5 @@ void UInGameUI::NativeConstruct()
 
 void UInGameUI::NativeDestruct()
 {
-	ActivatePlacementButton->OnClicked.RemoveDynamic(this, &UInGameUI::DispatchButtonEvent);
-
 	Super::NativeDestruct();
-}
-
-void UInGameUI::DispatchButtonEvent()
-{
-	bool ExecResult = ButtonClickedDelegate.ExecuteIfBound();
 }

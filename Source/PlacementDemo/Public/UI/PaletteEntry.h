@@ -27,6 +27,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* Icon;
 
+	// Additional icon for handing mouse hover.
+	UPROPERTY(EditAnywhere, blueprintReadWrite)
+	UTexture2D* IconHover;
+
 	// Mesh used during placement
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMesh* PreviewMesh;

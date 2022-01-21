@@ -21,8 +21,8 @@ APlacementPawn::APlacementPawn()
 	TopdownCamera->SetupAttachment(RootComponent);
 	TopdownCamera->bUsePawnControlRotation = false;
 
-	MinZoomDistance = 100.f;
-	MaxZoomDistance = 1000.f;
+	MinZoomDistance = 300.f;
+	MaxZoomDistance = 3000.f;
 }
 
 // Called when the game starts or when spawned

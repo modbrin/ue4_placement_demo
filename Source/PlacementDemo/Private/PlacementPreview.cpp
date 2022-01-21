@@ -16,13 +16,11 @@ APlacementPreview::APlacementPreview()
 void APlacementPreview::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
 void APlacementPreview::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 

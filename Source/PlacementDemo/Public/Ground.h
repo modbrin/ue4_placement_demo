@@ -26,5 +26,10 @@ public:
 public: // properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Mesh)
 	UStaticMeshComponent* Mesh;
+
+	UFUNCTION()
+	void SetGridEnabled(bool Enabled);
 	
+private:
+	UMaterialInstanceDynamic* DynamicMaterial;
 };

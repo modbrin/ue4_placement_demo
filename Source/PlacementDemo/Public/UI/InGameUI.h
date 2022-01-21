@@ -18,15 +18,7 @@ class PLACEMENTDEMO_API UInGameUI : public UUserWidget
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
-
-public: // methods
-	UFUNCTION()
-	void DispatchButtonEvent();
-
 public: // properties
-	UPROPERTY(meta = (BindWidget))
-	class UButton* ActivatePlacementButton;
-
 	UPROPERTY(meta = (BindWidget))
 	class UListView* PaletteListView;
 

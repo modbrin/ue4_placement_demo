@@ -9,6 +9,7 @@
 #include "PlacementPawn.h"
 #include "PlacementPreview.h"
 #include "Blueprint/UserWidget.h"
+#include "Misc/PDUtils.h"
 
 APlacementPlayerController::APlacementPlayerController()
 {
@@ -17,6 +18,7 @@ APlacementPlayerController::APlacementPlayerController()
 	BaseTurnRate = 1.f;
 	MinViewPitchDegrees = -30.f;
 	MaxViewPitchDegrees = 50.f;
+	GridSize = 200;
 }
 
 void APlacementPlayerController::BeginPlay()
@@ -183,9 +185,10 @@ void APlacementPlayerController::SetPlacementMode(bool Enabled)
 				APlacementPreview* PreviewActor = Cast<APlacementPreview>(SpawnedActor);
 				if (PreviewActor != nullptr && PreviewActor->Mesh != nullptr && PlacementPreviewMesh != nullptr)
 				{
-					PreviewActor->Mesh->SetStaticMesh(PlacementPreviewMesh);
+					PreviewActor->Mesh->SetStaticMesh(PlacementPreviewMesh.Get());
 					PlacementPreviewActor = PreviewActor;
 					bIsPlacementActive = true;
+					PlacementStateChangedDelegate.Broadcast(true);
 				}
 				else
 				{
@@ -200,6 +203,7 @@ void APlacementPlayerController::SetPlacementMode(bool Enabled)
 				PlacementPreviewActor->Destroy();
 				PlacementPreviewActor = nullptr;
 				bIsPlacementActive = false;
+				PlacementStateChangedDelegate.Broadcast(false);
 			}
 		}
 	}
@@ -214,7 +218,7 @@ void APlacementPlayerController::PerformPlacementPreview()
 	{
 		if (TracePoint.IsSet())
 		{
-			PlacementPreviewActor->SetActorLocation(TracePoint.GetValue());
+			PlacementPreviewActor->SetActorLocation(PDUtils::SnapLocationToGrid(TracePoint.GetValue(), GridSize));
 			PlacementPreviewActor->Mesh->SetVisibility(true);
 		}
 		else
@@ -236,7 +240,8 @@ void APlacementPlayerController::FinalizePlacement()
 			TOptional<FVector> TargetPoint = TraceMouseLocationToActor(TEXT("Ground"));
 			if (TargetPoint.IsSet())
 			{
-				AActor* PlacedActor = World->SpawnActor(PlacementActorClass, &TargetPoint.GetValue());
+				FVector PlacementLocation = PDUtils::SnapLocationToGrid(TargetPoint.GetValue(), GridSize);
+				AActor* PlacedActor = World->SpawnActor(PlacementActorClass, &PlacementLocation);
 				SetPlacementMode(false);
 			}
 		}

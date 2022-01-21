@@ -3,6 +3,9 @@
 
 #include "Ground.h"
 
+#include "PlacementPlayerController.h"
+#include "Kismet/GameplayStatics.h"
+
 // Sets default values
 AGround::AGround()
 {
@@ -10,6 +13,7 @@ AGround::AGround()
 	PrimaryActorTick.bCanEverTick = false;
 	
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	SetRootComponent(Mesh);
 	Mesh->SetMobility(EComponentMobility::Static);
 }
 
@@ -17,6 +21,24 @@ AGround::AGround()
 void AGround::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (Mesh != nullptr)
+	{
+		DynamicMaterial = UMaterialInstanceDynamic::Create(Mesh->GetMaterial(0), nullptr);
+		Mesh->SetMaterial(0, DynamicMaterial);
+		SetGridEnabled(false);
+	}
+
+	UWorld* World = GetWorld();
+	if (World != nullptr)
+	{
+		
+		APlacementPlayerController* Controller = Cast<APlacementPlayerController>(UGameplayStatics::GetPlayerController(World, 0));
+		if (Controller != nullptr)
+		{
+			Controller->PlacementStateChangedDelegate.AddUObject(this, &AGround::SetGridEnabled);
+		}
+	}
 	
 }
 
@@ -27,3 +49,10 @@ void AGround::Tick(float DeltaTime)
 
 }
 
+void AGround::SetGridEnabled(bool Enabled)
+{
+	if (DynamicMaterial != nullptr)
+	{
+		DynamicMaterial->SetScalarParameterValue(TEXT("GridEnabled"), Enabled?1.f:0.f);
+	}
+}

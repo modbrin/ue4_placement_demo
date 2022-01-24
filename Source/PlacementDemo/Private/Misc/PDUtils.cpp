@@ -8,6 +8,7 @@ FVector PDUtils::SnapLocationToGrid(const FVector Location, const int GridSize)
 {
 	auto SnapToGrid = [&](float axis) -> float
 	{
+		// TODO: is fmod performance ok?
 		float axisMod = axis -  FMath::Fmod(axis, static_cast<float>(GridSize));
 		if (axis > 0)
 		{

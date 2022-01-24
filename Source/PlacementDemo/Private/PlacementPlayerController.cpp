@@ -233,7 +233,8 @@ void APlacementPlayerController::FinalizePlacement()
 	if (!bIsPlacementActive) return;
 	
 	UWorld* World = GetWorld();
-	if (World != nullptr)
+	UPlacementDemoGameInstance* GI = Cast<UPlacementDemoGameInstance>(GetGameInstance());
+	if (World != nullptr && GI != nullptr)
 	{
 		if (PlacementActorClass != nullptr)
 		{
@@ -242,6 +243,11 @@ void APlacementPlayerController::FinalizePlacement()
 			{
 				FVector PlacementLocation = PDUtils::SnapLocationToGrid(TargetPoint.GetValue(), GridSize);
 				AActor* PlacedActor = World->SpawnActor(PlacementActorClass, &PlacementLocation);
+				AMapEntity* PlacedMapEntity = Cast<AMapEntity>(PlacedActor);
+				check(PlacedMapEntity != nullptr);
+
+				bool success = GI->SetMapElemAtLocation(PlacementLocation, PlacedMapEntity);
+				UE_LOG(LogTemp, Warning, TEXT("Writing pointer to map success: %s"), success?"Y":"N");
 				SetPlacementMode(false);
 			}
 		}

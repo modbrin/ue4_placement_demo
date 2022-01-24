@@ -80,6 +80,7 @@ public: // properties
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=PlacementPreview)
 	APlacementPreview* PlacementPreviewActor;
 
+	// TODO: remove one of duplicates - another one is in GameInstance
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Grid)
 	int GridSize;
 

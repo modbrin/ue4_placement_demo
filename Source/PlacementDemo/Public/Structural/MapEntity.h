@@ -6,6 +6,16 @@
 #include "GameFramework/Actor.h"
 #include "MapEntity.generated.h"
 
+USTRUCT(BlueprintType)
+struct FMapIndex
+{
+	GENERATED_BODY()
+	
+	int X, Y;
+	FMapIndex(): X(0), Y(0) {}
+	FMapIndex(int inX, int inY): X(inX), Y(inY) {}
+};
+
 /**
  * MapEntity is a stationary element of map, can be placed from ItemPalette. Can be constructed, modified and destroyed
  * but can not move by itself.
@@ -16,15 +26,20 @@ class PLACEMENTDEMO_API AMapEntity : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	AMapEntity();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
+public: // methods
 	virtual void Tick(float DeltaTime) override;
+	virtual void OnPlaced(FMapIndex placedAt);
+	virtual void OnRemoved() {}
 
+	FORCEINLINE FMapIndex GetMapIndex() const
+	{
+		return MapIndex;
+	}
+private: // properties
+	FMapIndex MapIndex;
 };

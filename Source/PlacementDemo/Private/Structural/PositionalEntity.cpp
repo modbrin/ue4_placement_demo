@@ -2,4 +2,3 @@
 
 
 #include "Structural/PositionalEntity.h"
-

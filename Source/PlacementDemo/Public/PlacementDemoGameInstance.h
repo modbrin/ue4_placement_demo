@@ -7,9 +7,7 @@
 #include "Engine/GameInstance.h"
 #include "PlacementDemoGameInstance.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class PLACEMENTDEMO_API UPlacementDemoGameInstance : public UGameInstance
 {
@@ -22,13 +20,39 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LoadUI();
 
+	UFUNCTION(BlueprintCallable)
+	void InitializeEmptyMap();
+	
+	bool IsCoordinateInMap(int inX, int inY) const;
+	TOptional<AMapEntity*> GetMapElemAt(FMapIndex inCoord) const;
+	TOptional<AMapEntity*> GetMapElemAtLocation(FVector Location) const;
+	bool SetMapElemAt(FMapIndex inCoord, AMapEntity* MapEntity);
+	bool SetMapElemAtLocation(FVector Location, AMapEntity* MapEntity);
+	FMapIndex ConvertLocationToMapIndex(FVector) const;
+	TOptional<AMapEntity*> GetAdjacentXPos(FMapIndex fromIndex);
+	TOptional<AMapEntity*> GetAdjacentYPos(FMapIndex fromIndex);
+	TOptional<AMapEntity*> GetAdjacentXNeg(FMapIndex fromIndex);
+	TOptional<AMapEntity*> GetAdjacentYNeg(FMapIndex fromIndex);
+
 protected:
 	TSubclassOf<UUserWidget> InGameUIClass;
 
 	UPROPERTY(BlueprintReadWrite, Category=UI)
 	UInGameUI* InGameUI;
 
+	UPROPERTY()
+	TArray<AMapEntity*> MapEntities;
+	
 public:
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, Category=Inventory)
 	UItemPalette* ItemPalette;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Map)
+	int MapXSize;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Map)
+	int MapYSize;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Map)
+	int GridSize;
 };

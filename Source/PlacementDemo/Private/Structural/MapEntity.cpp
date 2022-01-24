@@ -25,3 +25,8 @@ void AMapEntity::Tick(float DeltaTime)
 
 }
 
+void AMapEntity::OnPlaced(FMapIndex placedAt)
+{
+	MapIndex = placedAt;
+}
+

@@ -14,5 +14,6 @@ UCLASS()
 class PLACEMENTDEMO_API APositionalEntity : public AMapEntity
 {
 	GENERATED_BODY()
-	
+public:
+	virtual void UpdateLook() {}
 };

@@ -15,7 +15,6 @@ AMapEntity::AMapEntity()
 void AMapEntity::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame

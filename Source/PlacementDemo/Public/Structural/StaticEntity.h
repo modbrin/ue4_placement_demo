@@ -16,7 +16,9 @@ class PLACEMENTDEMO_API AStaticEntity : public AMapEntity
 	GENERATED_BODY()
 public:
 	AStaticEntity();
-	
+
+	virtual void OnHoverBegin() override;
+	virtual void OnHoverEnd() override;
 public: // properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* Mesh;

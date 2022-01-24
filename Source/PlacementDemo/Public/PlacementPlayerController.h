@@ -13,6 +13,8 @@
 DECLARE_DELEGATE_OneParam(FCustomInputDelegate, const bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FPlacementStateChangedSignature, const bool);
 
+#define ECC_SelectableEntity ECC_GameTraceChannel1
+
 /**
  * 
  */
@@ -29,8 +31,10 @@ public: // methods
 	void LookUp(float Rate);
 	void Turn(float Rate);
 	void Zoom(float Rate);
+	void PerformHoverTest();
 	TOptional<FVector> TraceMouseLocationToActor(FName Tag) const;
 	TOptional<FVector> TraceMouseLocationOnGroundPlane(float AcceptableTraceDistance = 10000.f) const;
+	TOptional<AMapEntity*> TraceMouseLocationToSelectableEntity();
 	void PerformViewMovement();
 	void SetViewMovement(bool Enabled);
 	void SetViewOrbiting(bool Enabled);
@@ -85,4 +89,6 @@ public: // properties
 	int GridSize;
 
 	FPlacementStateChangedSignature PlacementStateChangedDelegate;
+
+	TOptional<AMapEntity*> LastHoveredMapEntity;
 };

@@ -76,10 +76,16 @@ void APlacementPlayerController::Tick(float DeltaSeconds)
 	{
 		PerformPlacementPreview();
 	}
+	else
+	{
+		PerformHoverTest();
+	}
 }
 
 TOptional<FVector> APlacementPlayerController::TraceMouseLocationToActor(FName Tag) const
 {
+	// TODO: rewrite to use collision channel
+	
 	FVector CursorLocation;
 	FVector CursorDirection;
 	DeprojectMousePositionToWorld(CursorLocation, CursorDirection);
@@ -88,15 +94,18 @@ TOptional<FVector> APlacementPlayerController::TraceMouseLocationToActor(FName T
 	FHitResult OutHit(ForceInit);
 	UWorld* World = GetWorld();
 
-	FCollisionQueryParams CollisionParams;
-	const FName TraceTag("PlacementPreviewTraceTag");
-	// World->DebugDrawTraceTag = TraceTag;
-	CollisionParams.TraceTag = TraceTag;
+	if (World != nullptr)
+	{
+		FCollisionQueryParams CollisionParams;
+		const FName TraceTag("PlacementPreviewTraceTag");
+		// World->DebugDrawTraceTag = TraceTag;
+		CollisionParams.TraceTag = TraceTag;
 	
-	FCollisionObjectQueryParams CollisionObjectParams;
-	CollisionObjectParams.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldStatic);
+		FCollisionObjectQueryParams CollisionObjectParams;
+		CollisionObjectParams.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldStatic);
 	
-	World->LineTraceSingleByObjectType(OutHit, CursorLocation, EndTrace, CollisionObjectParams, CollisionParams);
+		World->LineTraceSingleByObjectType(OutHit, CursorLocation, EndTrace, CollisionObjectParams, CollisionParams);
+	}
 
 	AActor* HitActor = OutHit.GetActor();
 	if (HitActor != nullptr && HitActor->ActorHasTag(Tag))
@@ -131,6 +140,37 @@ TOptional<FVector> APlacementPlayerController::TraceMouseLocationOnGroundPlane(f
 	else
 	{
 		return TOptional<FVector>();
+	}
+}
+
+TOptional<AMapEntity*> APlacementPlayerController::TraceMouseLocationToSelectableEntity()
+{
+	FVector CursorLocation;
+	FVector CursorDirection;
+	DeprojectMousePositionToWorld(CursorLocation, CursorDirection);
+	FVector EndTrace = CursorLocation + CursorDirection * 10000.0f;
+	
+	FHitResult OutHit(ForceInit);
+	UWorld* World = GetWorld();
+
+	if (World != nullptr)
+	{
+		FCollisionQueryParams CollisionParams;
+		const FName TraceTag("SelectableEntityTraceTag");
+		// World->DebugDrawTraceTag = TraceTag;
+		CollisionParams.TraceTag = TraceTag;
+		
+		World->LineTraceSingleByChannel(OutHit, CursorLocation, EndTrace, ECC_SelectableEntity, CollisionParams);
+	}
+
+	AMapEntity* HitActor = Cast<AMapEntity>(OutHit.GetActor());
+	if (HitActor != nullptr)
+	{
+		return TOptional<AMapEntity*>(HitActor);
+	}
+	else
+	{
+		return TOptional<AMapEntity*>();
 	}
 }
 
@@ -247,7 +287,6 @@ void APlacementPlayerController::FinalizePlacement()
 				check(PlacedMapEntity != nullptr);
 
 				bool success = GI->SetMapElemAtLocation(PlacementLocation, PlacedMapEntity);
-				UE_LOG(LogTemp, Warning, TEXT("Writing pointer to map success: %s"), success?"Y":"N");
 				SetPlacementMode(false);
 			}
 		}
@@ -289,5 +328,31 @@ void APlacementPlayerController::Zoom(float Rate)
 	if (Zoomable)
 	{
 		Zoomable->Zoom(Rate * BaseZoomRate);
+	}
+}
+
+void APlacementPlayerController::PerformHoverTest()
+{
+	TOptional<AMapEntity*> TracedEntity = TraceMouseLocationToSelectableEntity();
+	if (TracedEntity.IsSet() && TracedEntity.GetValue() != nullptr)
+	{
+		if (!LastHoveredMapEntity.IsSet())
+		{
+			// nothing was selected recently
+			TracedEntity.GetValue()->OnHoverBegin();
+			LastHoveredMapEntity.Emplace(TracedEntity.GetValue());
+		}
+		else if (LastHoveredMapEntity.GetValue() != TracedEntity.GetValue())
+		{
+			// switching between selectable entities seamlessly
+			LastHoveredMapEntity.GetValue()->OnHoverEnd();
+			TracedEntity.GetValue()->OnHoverBegin();
+			LastHoveredMapEntity.Emplace(TracedEntity.GetValue());
+		}
+	} else if (LastHoveredMapEntity.IsSet() && LastHoveredMapEntity.GetValue() != nullptr)
+	{
+		// nothing is selected now, need to unselect last item
+		LastHoveredMapEntity.GetValue()->OnHoverEnd();
+		LastHoveredMapEntity.Reset();
 	}
 }

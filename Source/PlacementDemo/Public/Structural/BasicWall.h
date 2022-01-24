@@ -20,6 +20,8 @@ public:
 	virtual void OnPlaced(FMapIndex placedAt) override;
 	virtual void OnRemoved() override;
 	virtual void UpdateLook() override;
+	virtual void OnHoverBegin() override;
+	virtual void OnHoverEnd() override;
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

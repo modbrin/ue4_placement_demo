@@ -76,3 +76,21 @@ void ABasicWall::UpdateLook()
 		ConnectorMeshYPos->SetVisibility(IsBasicWall(AdjacentYPos));
 	}
 }
+
+void ABasicWall::OnHoverBegin()
+{
+	Super::OnHoverBegin();
+
+	BaseMesh->SetRenderCustomDepth(true);
+	ConnectorMeshXPos->SetRenderCustomDepth(true);
+	ConnectorMeshYPos->SetRenderCustomDepth(true);
+}
+
+void ABasicWall::OnHoverEnd()
+{
+	Super::OnHoverEnd();
+
+	BaseMesh->SetRenderCustomDepth(false);
+	ConnectorMeshXPos->SetRenderCustomDepth(false);
+	ConnectorMeshYPos->SetRenderCustomDepth(false);
+}

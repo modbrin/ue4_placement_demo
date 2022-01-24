@@ -35,6 +35,8 @@ public: // methods
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnPlaced(FMapIndex placedAt);
 	virtual void OnRemoved() {}
+	virtual void OnHoverBegin() {}
+	virtual void OnHoverEnd() {}
 
 	FORCEINLINE FMapIndex GetMapIndex() const
 	{

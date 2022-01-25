@@ -16,4 +16,5 @@ class PLACEMENTDEMO_API APositionalEntity : public AMapEntity
 	GENERATED_BODY()
 public:
 	virtual void UpdateLook() {}
+	virtual FText GetDisplayName() const override;
 };

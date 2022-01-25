@@ -2,7 +2,6 @@
 
 
 #include "PlacementPlayerController.h"
-
 #include "DrawDebugHelpers.h"
 #include "UI/InGameUI.h"
 #include "PlacementDemoGameInstance.h"
@@ -220,7 +219,7 @@ void APlacementPlayerController::SetPlacementMode(bool Enabled)
 		{
 			if (PlacementActorClass != nullptr && PlacementPreviewActorClass != nullptr && PlacementPreviewActor == nullptr)
 			{
-				const FVector StartingPoint = TraceMouseLocationToActor(TEXT("Ground")).Get(FVector());
+				const FVector StartingPoint = TraceMouseLocationToActor(TEXT("Ground")).Get(FVector::ZeroVector);
 				AActor* SpawnedActor = World->SpawnActor(PlacementPreviewActorClass, &StartingPoint);
 				APlacementPreview* PreviewActor = Cast<APlacementPreview>(SpawnedActor);
 				if (PreviewActor != nullptr && PreviewActor->Mesh != nullptr && PlacementPreviewMesh != nullptr)

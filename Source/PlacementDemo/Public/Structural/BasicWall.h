@@ -22,6 +22,7 @@ public:
 	virtual void UpdateLook() override;
 	virtual void OnHoverBegin() override;
 	virtual void OnHoverEnd() override;
+	virtual FText GetDisplayName() const override;
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

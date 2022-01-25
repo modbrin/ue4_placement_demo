@@ -4,6 +4,12 @@
 
 #include "CoreMinimal.h"
 
+#define ECC_SelectableEntity ECC_GameTraceChannel1
+
+#define OUTLINE_COLOR_GREEN 253
+#define OUTLINE_COLOR_ORANGE 252
+#define OUTLINE_COLOR_BLUE 251
+
 /**
  * Useful generic functions.
  */

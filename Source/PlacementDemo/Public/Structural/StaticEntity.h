@@ -15,10 +15,11 @@ class PLACEMENTDEMO_API AStaticEntity : public AMapEntity
 {
 	GENERATED_BODY()
 public:
-	AStaticEntity();
+	AStaticEntity(const FObjectInitializer&);
 
 	virtual void OnHoverBegin() override;
 	virtual void OnHoverEnd() override;
+	virtual FText GetDisplayName() const override;
 public: // properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* Mesh;

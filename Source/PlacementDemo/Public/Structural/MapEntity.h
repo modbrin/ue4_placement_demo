@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "UI/FloatingHoverText.h"
 #include "MapEntity.generated.h"
 
 USTRUCT(BlueprintType)
@@ -26,22 +27,35 @@ class PLACEMENTDEMO_API AMapEntity : public AActor
 	GENERATED_BODY()
 	
 public:	
-	AMapEntity();
+	AMapEntity(const FObjectInitializer&);
 
 protected:
 	virtual void BeginPlay() override;
 
 public: // methods
 	virtual void Tick(float DeltaTime) override;
-	virtual void OnPlaced(FMapIndex placedAt);
-	virtual void OnRemoved() {}
-	virtual void OnHoverBegin() {}
-	virtual void OnHoverEnd() {}
+	virtual FText GetDisplayName() const;
+	virtual void OnPlaced(FMapIndex PlacedAt);
+	virtual void OnRemoved();
+	virtual void OnHoverBegin();
+	virtual void OnHoverEnd();
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 	FORCEINLINE FMapIndex GetMapIndex() const
 	{
 		return MapIndex;
 	}
+	
+public: // properties
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USceneComponent* SceneRoot;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=UI)
+	class UWidgetComponent* FloatingTextWidgetComponent;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=UI)
+	TSubclassOf<UFloatingHoverText> FloatingTextWidgetClass;
+	
 private: // properties
 	FMapIndex MapIndex;
 };

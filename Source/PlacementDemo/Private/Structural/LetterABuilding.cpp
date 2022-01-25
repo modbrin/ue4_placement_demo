@@ -3,3 +3,7 @@
 
 #include "Structural/LetterABuilding.h"
 
+FText ALetterABuilding::GetDisplayName() const
+{
+	return FText::FromString(TEXT("Letter A Building"));
+}

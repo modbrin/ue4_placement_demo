@@ -13,8 +13,6 @@
 DECLARE_DELEGATE_OneParam(FCustomInputDelegate, const bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FPlacementStateChangedSignature, const bool);
 
-#define ECC_SelectableEntity ECC_GameTraceChannel1
-
 /**
  * 
  */

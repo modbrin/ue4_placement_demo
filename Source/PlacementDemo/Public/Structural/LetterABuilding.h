@@ -13,5 +13,6 @@ UCLASS()
 class PLACEMENTDEMO_API ALetterABuilding : public AStaticEntity
 {
 	GENERATED_BODY()
-	
+public:
+	virtual FText GetDisplayName() const override;
 };

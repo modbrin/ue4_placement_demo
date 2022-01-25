@@ -3,15 +3,16 @@
 
 #include "Structural/BasicWall.h"
 #include "PlacementDemoGameInstance.h"
+#include "Misc/PDUtils.h"
 
 ABasicWall::ABasicWall()
 {
 	BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BaseMesh"));
 	ConnectorMeshXPos = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ConnectorMeshXPos"));
 	ConnectorMeshYPos = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ConnectorMeshYPos"));
-	SetRootComponent(BaseMesh);
-	ConnectorMeshXPos->SetupAttachment(BaseMesh);
-	ConnectorMeshYPos->SetupAttachment(BaseMesh);
+	BaseMesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	ConnectorMeshXPos->AttachToComponent(BaseMesh, FAttachmentTransformRules::KeepRelativeTransform);
+	ConnectorMeshYPos->AttachToComponent(BaseMesh, FAttachmentTransformRules::KeepRelativeTransform);
 	ConnectorMeshXPos->SetVisibility(false);
 	ConnectorMeshYPos->SetVisibility(false);
 	ConnectorMeshYPos->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
@@ -84,6 +85,9 @@ void ABasicWall::OnHoverBegin()
 	BaseMesh->SetRenderCustomDepth(true);
 	ConnectorMeshXPos->SetRenderCustomDepth(true);
 	ConnectorMeshYPos->SetRenderCustomDepth(true);
+	BaseMesh->SetCustomDepthStencilValue(OUTLINE_COLOR_BLUE);
+	ConnectorMeshXPos->SetCustomDepthStencilValue(OUTLINE_COLOR_BLUE);
+	ConnectorMeshYPos->SetCustomDepthStencilValue(OUTLINE_COLOR_BLUE);
 }
 
 void ABasicWall::OnHoverEnd()
@@ -93,4 +97,9 @@ void ABasicWall::OnHoverEnd()
 	BaseMesh->SetRenderCustomDepth(false);
 	ConnectorMeshXPos->SetRenderCustomDepth(false);
 	ConnectorMeshYPos->SetRenderCustomDepth(false);
+}
+
+FText ABasicWall::GetDisplayName() const
+{
+	return FText::FromString(TEXT("Basic Wall"));
 }

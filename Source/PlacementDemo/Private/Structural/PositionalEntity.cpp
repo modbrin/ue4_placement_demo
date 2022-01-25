@@ -2,3 +2,8 @@
 
 
 #include "Structural/PositionalEntity.h"
+
+FText APositionalEntity::GetDisplayName() const
+{
+	return FText::FromString(TEXT("Positional Entity"));
+}

@@ -28,6 +28,8 @@ public:
 	TOptional<AMapEntity*> GetMapElemAtLocation(FVector Location) const;
 	bool SetMapElemAt(FMapIndex inCoord, AMapEntity* MapEntity);
 	bool SetMapElemAtLocation(FVector Location, AMapEntity* MapEntity);
+	void ResetMapElemAt(FMapIndex inCoord);
+	bool IsCellAvailableAtLocation(FVector Location);
 	FMapIndex ConvertLocationToMapIndex(FVector) const;
 	TOptional<AMapEntity*> GetAdjacentXPos(FMapIndex fromIndex);
 	TOptional<AMapEntity*> GetAdjacentYPos(FMapIndex fromIndex);

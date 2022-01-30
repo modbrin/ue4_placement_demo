@@ -2,6 +2,8 @@
 
 
 #include "Structural/MapEntity.h"
+
+#include "PlacementDemoGameInstance.h"
 #include "Components/WidgetComponent.h"
 
 // Sets default values
@@ -36,6 +38,12 @@ void AMapEntity::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//TODO: temporary
+	UWorld* World = GetWorld();
+	if (World != nullptr)
+	{
+		Integrity = FMath::Fmod(World->GetTimeSeconds() * 10, 100.f);
+	}
 }
 
 void AMapEntity::OnPlaced(FMapIndex PlacedAt)
@@ -43,12 +51,57 @@ void AMapEntity::OnPlaced(FMapIndex PlacedAt)
 	MapIndex = PlacedAt;
 }
 
+void AMapEntity::RemoveSelfFromGridMap()
+{
+	UPlacementDemoGameInstance* GI = Cast<UPlacementDemoGameInstance>(GetGameInstance());
+	if (GI != nullptr)
+	{
+		GI->ResetMapElemAt(MapIndex);
+	}
+}
+
 void AMapEntity::OnRemoved()
 {
+	OnCleanupBeforeRemoval();
+	Destroy();
+}
+
+void AMapEntity::OnCleanupBeforeRemoval()
+{
+	RemoveSelfFromGridMap();
 }
 
 void AMapEntity::OnHoverBegin()
 {
+	if (!bIsSelected)
+	{
+		UFloatingHoverText* Widget = Cast<UFloatingHoverText>(FloatingTextWidgetComponent->GetWidget());
+		if (Widget != nullptr)
+		{
+			Widget->SetVisible(true);
+		}
+		bIsHovered = true;
+	}
+}
+
+void AMapEntity::OnHoverEnd()
+{
+	if (bIsHovered)
+	{
+		UFloatingHoverText* Widget = Cast<UFloatingHoverText>(FloatingTextWidgetComponent->GetWidget());
+		if (Widget != nullptr)
+		{
+			Widget->SetVisible(false);
+		}
+		bIsHovered = false;
+	}
+}
+
+void AMapEntity::OnSelected()
+{
+	bIsSelected = true;
+	OnHoverEnd();
+	
 	UFloatingHoverText* Widget = Cast<UFloatingHoverText>(FloatingTextWidgetComponent->GetWidget());
 	if (Widget != nullptr)
 	{
@@ -56,8 +109,10 @@ void AMapEntity::OnHoverBegin()
 	}
 }
 
-void AMapEntity::OnHoverEnd()
+void AMapEntity::OnDeselected()
 {
+	bIsSelected = false;
+
 	UFloatingHoverText* Widget = Cast<UFloatingHoverText>(FloatingTextWidgetComponent->GetWidget());
 	if (Widget != nullptr)
 	{
@@ -75,7 +130,14 @@ void AMapEntity::OnConstruction(const FTransform& Transform)
 	}
 }
 
+float AMapEntity::GetIntegrity()
+{
+	return Integrity;
+}
+
 FText AMapEntity::GetDisplayName() const
 {
 	return FText::FromString(TEXT("Map Entity"));
 }
+
+

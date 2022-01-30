@@ -13,15 +13,20 @@ class PLACEMENTDEMO_API APlacementPreview : public AActor
 	
 public:	
 	// Sets default values for this actor's properties
-	APlacementPreview();
+	APlacementPreview(const FObjectInitializer& OI);
 
 protected:
 	virtual void BeginPlay() override;
 
 public:	
 	virtual void Tick(float DeltaTime) override;
+	void ShowInvalidPlacement(bool Enabled);
+	void SetVisible(bool IsVisible);
 
 public: // properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Mesh)
 	UStaticMeshComponent* Mesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UDecalComponent* PlacementValidationDecal;
 };

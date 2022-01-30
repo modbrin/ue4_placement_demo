@@ -31,19 +31,19 @@ void APlacementPlayerController::BeginPlay()
 	SetShowMouseCursor(true);
 	SetInputMode(InputMode);
 
-
-	UPlacementDemoGameInstance* GI = Cast<UPlacementDemoGameInstance>(GetGameInstance());
-	if (GI != nullptr)
-	{
-		UInGameUI* UI = GI->GetInGameUI();
-		if (UI != nullptr)
-		{
-			UI->ButtonClickedDelegate.BindLambda([this]()
-			{
-				this->SetPlacementMode(true);
-			});
-		}
-	}
+	// TODO: remove redundant code
+	// UPlacementDemoGameInstance* GI = Cast<UPlacementDemoGameInstance>(GetGameInstance());
+	// if (GI != nullptr)
+	// {
+	// 	UInGameUI* UI = GI->GetInGameUI();
+	// 	if (UI != nullptr)
+	// 	{
+	// 		UI->ButtonClickedDelegate.BindLambda([this]()
+	// 		{
+	// 			this->SetPlacementMode(true);
+	// 		});
+	// 	}
+	// }
 }
 
 void APlacementPlayerController::SetupInputComponent()
@@ -55,7 +55,7 @@ void APlacementPlayerController::SetupInputComponent()
 	InputComponent->BindAction<FCustomInputDelegate>("SetViewOrbiting", IE_Pressed, this, &APlacementPlayerController::SetViewOrbiting, true);
 	InputComponent->BindAction<FCustomInputDelegate>("SetViewOrbiting", IE_Released, this, &APlacementPlayerController::SetViewOrbiting, false);
 	InputComponent->BindAction<FCustomInputDelegate>("CancelAction", IE_Pressed, this, &APlacementPlayerController::SetPlacementMode, false);
-	InputComponent->BindAction("MainAction", IE_Pressed, this, &APlacementPlayerController::FinalizePlacement);
+	InputComponent->BindAction("MainAction", IE_Pressed, this, &APlacementPlayerController::MainActionTriggered);
 
 	InputComponent->BindAxis("Turn", this, &APlacementPlayerController::Turn);
 	InputComponent->BindAxis("LookUp", this, &APlacementPlayerController::LookUp);
@@ -252,18 +252,30 @@ void APlacementPlayerController::SetPlacementMode(bool Enabled)
 void APlacementPlayerController::PerformPlacementPreview()
 {
 	TOptional<FVector> TracePoint = TraceMouseLocationToActor(TEXT("Ground"));
-
-	if (PlacementPreviewActor != nullptr && PlacementPreviewActor->Mesh != nullptr)
+	UPlacementDemoGameInstance* GI = Cast<UPlacementDemoGameInstance>(GetGameInstance());
+	if (PlacementPreviewActor != nullptr && PlacementPreviewActor->Mesh != nullptr && GI != nullptr)
 	{
 		if (TracePoint.IsSet())
 		{
 			PlacementPreviewActor->SetActorLocation(PDUtils::SnapLocationToGrid(TracePoint.GetValue(), GridSize));
 			PlacementPreviewActor->Mesh->SetVisibility(true);
+			PlacementPreviewActor->ShowInvalidPlacement(!GI->IsCellAvailableAtLocation(TracePoint.GetValue()));
 		}
 		else
 		{
-			PlacementPreviewActor->Mesh->SetVisibility(false);
+			PlacementPreviewActor->SetVisible(false);
 		}
+	}
+}
+
+void APlacementPlayerController::MainActionTriggered()
+{
+	if (bIsPlacementActive)
+	{
+		FinalizePlacement();
+	} else
+	{
+		AttemptSelectingEntity();
 	}
 }
 
@@ -278,7 +290,7 @@ void APlacementPlayerController::FinalizePlacement()
 		if (PlacementActorClass != nullptr)
 		{
 			TOptional<FVector> TargetPoint = TraceMouseLocationToActor(TEXT("Ground"));
-			if (TargetPoint.IsSet())
+			if (TargetPoint.IsSet() && GI->IsCellAvailableAtLocation(TargetPoint.GetValue()))
 			{
 				FVector PlacementLocation = PDUtils::SnapLocationToGrid(TargetPoint.GetValue(), GridSize);
 				AActor* PlacedActor = World->SpawnActor(PlacementActorClass, &PlacementLocation);
@@ -299,6 +311,21 @@ void APlacementPlayerController::PaletteItemSelected(const UPaletteEntry* Entry)
 		PlacementActorClass = Entry->MapEntityClass;
 		PlacementPreviewMesh = Entry->PreviewMesh;
 		SetPlacementMode(true);
+	}
+}
+
+void APlacementPlayerController::DestroySelectedEntityInvoked()
+{
+	if (LastSelectedMapEntity.IsSet() && IsValid(LastSelectedMapEntity.GetValue()))
+	{
+		LastSelectedMapEntity.GetValue()->OnRemoved();
+		LastSelectedMapEntity.Reset();
+		UPlacementDemoGameInstance* GI = Cast<UPlacementDemoGameInstance>(GetGameInstance());
+		if (GI != nullptr && GI->GetInGameUI() != nullptr)
+		{
+			GI->GetInGameUI()->SetSelectionInfoVisibility(false);
+			GI->GetInGameUI()->ResetSelection();
+		}
 	}
 }
 
@@ -335,23 +362,61 @@ void APlacementPlayerController::PerformHoverTest()
 	TOptional<AMapEntity*> TracedEntity = TraceMouseLocationToSelectableEntity();
 	if (TracedEntity.IsSet() && TracedEntity.GetValue() != nullptr)
 	{
-		if (!LastHoveredMapEntity.IsSet())
+		if (LastHoveredMapEntity.IsSet())
 		{
-			// nothing was selected recently
-			TracedEntity.GetValue()->OnHoverBegin();
-			LastHoveredMapEntity.Emplace(TracedEntity.GetValue());
+			if (LastHoveredMapEntity.GetValue() != TracedEntity.GetValue())
+			{
+				LastHoveredMapEntity.GetValue()->OnHoverEnd(); // switching between selectable entities seamlessly
+			}
+			else
+			{
+				return; // hovering already active
+			}
 		}
-		else if (LastHoveredMapEntity.GetValue() != TracedEntity.GetValue())
-		{
-			// switching between selectable entities seamlessly
-			LastHoveredMapEntity.GetValue()->OnHoverEnd();
-			TracedEntity.GetValue()->OnHoverBegin();
-			LastHoveredMapEntity.Emplace(TracedEntity.GetValue());
-		}
-	} else if (LastHoveredMapEntity.IsSet() && LastHoveredMapEntity.GetValue() != nullptr)
+		TracedEntity.GetValue()->OnHoverBegin();
+		LastHoveredMapEntity.Emplace(TracedEntity.GetValue());
+	}
+	else if (LastHoveredMapEntity.IsSet() && LastHoveredMapEntity.GetValue() != nullptr)
 	{
-		// nothing is selected now, need to unselect last item
+		// nothing is hovered now, need to un-hover last item
 		LastHoveredMapEntity.GetValue()->OnHoverEnd();
 		LastHoveredMapEntity.Reset();
+	}
+}
+
+void APlacementPlayerController::AttemptSelectingEntity()
+{
+	TOptional<AMapEntity*> TracedEntity = TraceMouseLocationToSelectableEntity();
+	UPlacementDemoGameInstance* GI = Cast<UPlacementDemoGameInstance>(GetGameInstance());
+	if (TracedEntity.IsSet() && TracedEntity.GetValue() != nullptr)
+	{
+		if (LastSelectedMapEntity.IsSet())
+		{
+			if (LastSelectedMapEntity.GetValue() != TracedEntity.GetValue())
+			{
+				LastSelectedMapEntity.GetValue()->OnDeselected(); // switching between selectable entities seamlessly
+			}
+			else
+			{
+				return; // selection already active
+			}
+		}
+		TracedEntity.GetValue()->OnSelected();
+		if (GI != nullptr && GI->GetInGameUI() != nullptr)
+		{
+			GI->GetInGameUI()->SetSelectedEntity(TracedEntity.GetValue());
+			GI->GetInGameUI()->SetSelectionInfoVisibility(true);
+		}
+		LastSelectedMapEntity.Emplace(TracedEntity.GetValue());
+	} else if (LastSelectedMapEntity.IsSet() && LastSelectedMapEntity.GetValue() != nullptr)
+	{
+		// nothing is selected now, need to unselect last item
+		LastSelectedMapEntity.GetValue()->OnDeselected();
+		if (GI != nullptr && GI->GetInGameUI() != nullptr)
+		{
+			GI->GetInGameUI()->SetSelectionInfoVisibility(false);
+			GI->GetInGameUI()->ResetSelection();
+		}
+		LastSelectedMapEntity.Reset();
 	}
 }

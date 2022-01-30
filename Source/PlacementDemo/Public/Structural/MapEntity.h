@@ -36,10 +36,16 @@ public: // methods
 	virtual void Tick(float DeltaTime) override;
 	virtual FText GetDisplayName() const;
 	virtual void OnPlaced(FMapIndex PlacedAt);
+	void RemoveSelfFromGridMap();
 	virtual void OnRemoved();
+	virtual void OnCleanupBeforeRemoval();
 	virtual void OnHoverBegin();
 	virtual void OnHoverEnd();
+	virtual void OnSelected();
+	virtual void OnDeselected();
 	virtual void OnConstruction(const FTransform& Transform) override;
+	UFUNCTION(BlueprintGetter)
+	float GetIntegrity();
 
 	FORCEINLINE FMapIndex GetMapIndex() const
 	{
@@ -55,7 +61,11 @@ public: // properties
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=UI)
 	TSubclassOf<UFloatingHoverText> FloatingTextWidgetClass;
-	
+protected:
+	bool bIsHovered = false;
+	bool bIsSelected = false;
 private: // properties
 	FMapIndex MapIndex;
+	// Goes from 0 to 100.
+	float Integrity;
 };

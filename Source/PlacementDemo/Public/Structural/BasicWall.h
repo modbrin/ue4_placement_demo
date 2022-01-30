@@ -18,12 +18,15 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void OnPlaced(FMapIndex placedAt) override;
-	virtual void OnRemoved() override;
 	virtual void UpdateLook() override;
+	virtual void OnCleanupBeforeRemoval() override;
 	virtual void OnHoverBegin() override;
 	virtual void OnHoverEnd() override;
+	virtual void OnSelected() override;
+	virtual void OnDeselected() override;
 	virtual FText GetDisplayName() const override;
-	
+	void InvokeUpdateAdjacent();
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* BaseMesh;

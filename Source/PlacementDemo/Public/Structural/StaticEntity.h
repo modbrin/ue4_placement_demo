@@ -19,6 +19,8 @@ public:
 
 	virtual void OnHoverBegin() override;
 	virtual void OnHoverEnd() override;
+	virtual void OnSelected() override;
+	virtual void OnDeselected() override;
 	virtual FText GetDisplayName() const override;
 public: // properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

@@ -4,12 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Structural/MapEntity.h"
 #include "InGameUI.generated.h"
 
-DECLARE_DELEGATE(FPlacementButtonClickedSignature)
-
 /**
- * 
+ * Main UI class that's mostly utilized during gameplay.
  */
 UCLASS()
 class PLACEMENTDEMO_API UInGameUI : public UUserWidget
@@ -18,9 +17,40 @@ class PLACEMENTDEMO_API UInGameUI : public UUserWidget
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
+
+public:
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	float GetSelectedIntegrity();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	float GetSelectedNextUnitProgress();
+
+	UFUNCTION()
+	void DestroySelectionClicked();
+	
+	void SetSelectionInfoVisibility(bool IsVisible);
+	void SetSelectionInfoTitle(FText Text);
+	void SetSelectedEntity(AMapEntity* MapEntity);
+	void ResetSelection();
+
 public: // properties
 	UPROPERTY(meta = (BindWidget))
 	class UListView* PaletteListView;
 
-	FPlacementButtonClickedSignature ButtonClickedDelegate;
+	UPROPERTY(meta = (BindWidget))
+	class UBorder* SelectedInfoBorder;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* SelectionTitleText;
+	
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* SelectionIntegrityProgress;
+
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* SelectionNextUnitProgress;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* SelectedEntityDestroyButton;
+
+	TWeakObjectPtr<AMapEntity> SelectedEntity;
 };

@@ -30,6 +30,7 @@ public: // methods
 	void Turn(float Rate);
 	void Zoom(float Rate);
 	void PerformHoverTest();
+	void AttemptSelectingEntity();
 	TOptional<FVector> TraceMouseLocationToActor(FName Tag) const;
 	TOptional<FVector> TraceMouseLocationOnGroundPlane(float AcceptableTraceDistance = 10000.f) const;
 	TOptional<AMapEntity*> TraceMouseLocationToSelectableEntity();
@@ -38,8 +39,10 @@ public: // methods
 	void SetViewOrbiting(bool Enabled);
 	void SetPlacementMode(bool Enabled);
 	void PerformPlacementPreview();
+	void MainActionTriggered();
 	void FinalizePlacement();
 	virtual void PaletteItemSelected(const UPaletteEntry* Entry) override;
+	virtual void DestroySelectedEntityInvoked() override;
 
 public: // properties
 	TOptional<FVector> GroundPointBeforeMovement{};
@@ -89,4 +92,5 @@ public: // properties
 	FPlacementStateChangedSignature PlacementStateChangedDelegate;
 
 	TOptional<AMapEntity*> LastHoveredMapEntity;
+	TOptional<AMapEntity*> LastSelectedMapEntity;
 };

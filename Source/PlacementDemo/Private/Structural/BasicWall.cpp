@@ -23,11 +23,13 @@ void ABasicWall::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ABasicWall::OnPlaced(FMapIndex placedAt)
+FText ABasicWall::GetDisplayName() const
 {
-	Super::OnPlaced(placedAt);
-	
-	UpdateLook();
+	return FText::FromString(TEXT("Basic Wall"));
+}
+
+void ABasicWall::InvokeUpdateAdjacent()
+{
 	UPlacementDemoGameInstance* GI = Cast<UPlacementDemoGameInstance>(GetGameInstance());
 	if (GI != nullptr)
 	{
@@ -50,9 +52,12 @@ void ABasicWall::OnPlaced(FMapIndex placedAt)
 	}
 }
 
-void ABasicWall::OnRemoved()
+void ABasicWall::OnPlaced(FMapIndex placedAt)
 {
-	// TODO: handle removal
+	Super::OnPlaced(placedAt);
+	
+	UpdateLook();
+	InvokeUpdateAdjacent();
 }
 
 void ABasicWall::UpdateLook()
@@ -78,28 +83,51 @@ void ABasicWall::UpdateLook()
 	}
 }
 
+void ABasicWall::OnCleanupBeforeRemoval()
+{
+	Super::OnCleanupBeforeRemoval();
+	// After reference has been cleared in grid map, update for adjacent is needed
+	InvokeUpdateAdjacent();
+}
+
 void ABasicWall::OnHoverBegin()
 {
 	Super::OnHoverBegin();
 
-	BaseMesh->SetRenderCustomDepth(true);
-	ConnectorMeshXPos->SetRenderCustomDepth(true);
-	ConnectorMeshYPos->SetRenderCustomDepth(true);
-	BaseMesh->SetCustomDepthStencilValue(OUTLINE_COLOR_BLUE);
-	ConnectorMeshXPos->SetCustomDepthStencilValue(OUTLINE_COLOR_BLUE);
-	ConnectorMeshYPos->SetCustomDepthStencilValue(OUTLINE_COLOR_BLUE);
+	if (!bIsSelected)
+	{
+		BaseMesh->SetRenderCustomDepth(true);
+		BaseMesh->SetCustomDepthStencilValue(OUTLINE_COLOR_ORANGE);
+		// ConnectorMeshXPos->SetRenderCustomDepth(true);
+		// ConnectorMeshXPos->SetCustomDepthStencilValue(OUTLINE_COLOR_ORANGE);
+		// ConnectorMeshYPos->SetRenderCustomDepth(true);
+		// ConnectorMeshYPos->SetCustomDepthStencilValue(OUTLINE_COLOR_ORANGE);
+	}
 }
 
 void ABasicWall::OnHoverEnd()
 {
+	if (bIsHovered)
+	{
+		BaseMesh->SetRenderCustomDepth(false);
+		// ConnectorMeshXPos->SetRenderCustomDepth(false);
+		// ConnectorMeshYPos->SetRenderCustomDepth(false);
+	}
 	Super::OnHoverEnd();
-
-	BaseMesh->SetRenderCustomDepth(false);
-	ConnectorMeshXPos->SetRenderCustomDepth(false);
-	ConnectorMeshYPos->SetRenderCustomDepth(false);
 }
 
-FText ABasicWall::GetDisplayName() const
+void ABasicWall::OnSelected()
 {
-	return FText::FromString(TEXT("Basic Wall"));
+	Super::OnSelected();
+	BaseMesh->SetCustomDepthStencilValue(OUTLINE_COLOR_BLUE);
+	BaseMesh->SetRenderCustomDepth(true);
+}
+
+void ABasicWall::OnDeselected()
+{
+	if (bIsSelected)
+	{
+		BaseMesh->SetRenderCustomDepth(false);
+	}
+	Super::OnDeselected();
 }

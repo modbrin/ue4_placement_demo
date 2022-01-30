@@ -83,6 +83,20 @@ bool UPlacementDemoGameInstance::SetMapElemAtLocation(FVector Location, AMapEnti
 	return SetMapElemAt(MapIndex, MapEntity);
 }
 
+void UPlacementDemoGameInstance::ResetMapElemAt(FMapIndex inCoord)
+{
+	if (IsCoordinateInMap(inCoord.X, inCoord.Y))
+	{
+		MapEntities[inCoord.X * MapYSize + inCoord.Y] = nullptr;
+	}
+}
+
+bool UPlacementDemoGameInstance::IsCellAvailableAtLocation(FVector Location)
+{
+	TOptional<AMapEntity*> MapEntity = GetMapElemAtLocation(Location);
+	return !(MapEntity.IsSet() && IsValid(MapEntity.GetValue()));
+}
+
 FMapIndex UPlacementDemoGameInstance::ConvertLocationToMapIndex(FVector Location) const
 {
 	auto ConvertToIndex = [this](float axis) -> int

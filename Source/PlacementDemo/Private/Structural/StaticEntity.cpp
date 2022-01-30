@@ -14,14 +14,37 @@ AStaticEntity::AStaticEntity(const FObjectInitializer& OI) : Super(OI)
 void AStaticEntity::OnHoverBegin()
 {
 	Super::OnHoverBegin();
-	Mesh->SetCustomDepthStencilValue(OUTLINE_COLOR_ORANGE);
-	Mesh->SetRenderCustomDepth(true);
+	
+	if (!bIsSelected)
+	{
+		Mesh->SetCustomDepthStencilValue(OUTLINE_COLOR_ORANGE);
+		Mesh->SetRenderCustomDepth(true);
+	}
 }
 
 void AStaticEntity::OnHoverEnd()
 {
+	if (bIsHovered)
+	{
+		Mesh->SetRenderCustomDepth(false);
+	}
 	Super::OnHoverEnd();
-	Mesh->SetRenderCustomDepth(false);
+}
+
+void AStaticEntity::OnSelected()
+{
+	Super::OnSelected();
+	Mesh->SetCustomDepthStencilValue(OUTLINE_COLOR_BLUE);
+	Mesh->SetRenderCustomDepth(true);
+}
+
+void AStaticEntity::OnDeselected()
+{
+	if (bIsSelected)
+	{
+		Mesh->SetRenderCustomDepth(false);
+	}
+	Super::OnDeselected();
 }
 
 FText AStaticEntity::GetDisplayName() const

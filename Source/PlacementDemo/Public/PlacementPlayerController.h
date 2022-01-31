@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "ItemPalette.h"
+#include "MatineeCameraShake.h"
+#include "NiagaraCommon.h"
 #include "PlacementPreview.h"
 #include "GameFramework/PlayerController.h"
 #include "Interfaces/PaletteActionsHandler.h"
@@ -31,6 +33,8 @@ public: // methods
 	void Zoom(float Rate);
 	void PerformHoverTest();
 	void AttemptSelectingEntity();
+	void PlayPlacementCameraShake();
+	void PlayPlacementParticleEffect(FVector Location);
 	TOptional<FVector> TraceMouseLocationToActor(FName Tag) const;
 	TOptional<FVector> TraceMouseLocationOnGroundPlane(float AcceptableTraceDistance = 10000.f) const;
 	TOptional<AMapEntity*> TraceMouseLocationToSelectableEntity();
@@ -75,6 +79,9 @@ public: // properties
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category=Camera)
 	float MaxViewPitchDegrees;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera)
+	TSubclassOf<UMatineeCameraShake> PlacementCameraShakeClass;
+	
 	TSubclassOf<AMapEntity> PlacementActorClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category=PlacementPreview)
@@ -84,6 +91,9 @@ public: // properties
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=PlacementPreview)
 	APlacementPreview* PlacementPreviewActor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=PlacementPreview)
+	UNiagaraSystem* PlacementNiagaraSystem;
 
 	// TODO: remove one of duplicates - another one is in GameInstance
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Grid)

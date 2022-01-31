@@ -21,3 +21,5 @@ void UFloatingHoverText::SetVisible(bool IsVisible)
 		FloatingContainer->SetVisibility(IsVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 	}
 }
+
+// TODO: implement integrity progress bar getter

@@ -18,6 +18,7 @@ AMapEntity::AMapEntity(const FObjectInitializer& OI): Super(OI)
 	FloatingTextWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
 	FloatingTextWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	FloatingTextWidgetComponent->AttachToComponent(SceneRoot, FAttachmentTransformRules::KeepRelativeTransform);
+	Integrity = 100.f;
 }
 
 // Called when the game starts or when spawned
@@ -31,19 +32,14 @@ void AMapEntity::BeginPlay()
 		Widget->SetText(GetDisplayName());
 		Widget->SetVisible(false);
 	}
+
+	TimeCreated = FDateTime::Now();
 }
 
 // Called every frame
 void AMapEntity::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	//TODO: temporary
-	UWorld* World = GetWorld();
-	if (World != nullptr)
-	{
-		Integrity = FMath::Fmod(World->GetTimeSeconds() * 10, 100.f);
-	}
 }
 
 void AMapEntity::OnPlaced(FMapIndex PlacedAt)
@@ -130,9 +126,14 @@ void AMapEntity::OnConstruction(const FTransform& Transform)
 	}
 }
 
-float AMapEntity::GetIntegrity()
+float AMapEntity::GetIntegrity() const
 {
 	return Integrity;
+}
+
+FDateTime AMapEntity::GetTimeCreated() const
+{
+	return TimeCreated;
 }
 
 FText AMapEntity::GetDisplayName() const

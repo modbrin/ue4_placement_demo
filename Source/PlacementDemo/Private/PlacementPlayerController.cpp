@@ -8,7 +8,9 @@
 #include "PlacementPawn.h"
 #include "PlacementPreview.h"
 #include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
 #include "Misc/PDUtils.h"
+#include "NiagaraFunctionLibrary.h"
 
 APlacementPlayerController::APlacementPlayerController()
 {
@@ -30,20 +32,6 @@ void APlacementPlayerController::BeginPlay()
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	SetShowMouseCursor(true);
 	SetInputMode(InputMode);
-
-	// TODO: remove redundant code
-	// UPlacementDemoGameInstance* GI = Cast<UPlacementDemoGameInstance>(GetGameInstance());
-	// if (GI != nullptr)
-	// {
-	// 	UInGameUI* UI = GI->GetInGameUI();
-	// 	if (UI != nullptr)
-	// 	{
-	// 		UI->ButtonClickedDelegate.BindLambda([this]()
-	// 		{
-	// 			this->SetPlacementMode(true);
-	// 		});
-	// 	}
-	// }
 }
 
 void APlacementPlayerController::SetupInputComponent()
@@ -299,6 +287,8 @@ void APlacementPlayerController::FinalizePlacement()
 
 				bool success = GI->SetMapElemAtLocation(PlacementLocation, PlacedMapEntity);
 				SetPlacementMode(false);
+				PlayPlacementCameraShake();
+				PlayPlacementParticleEffect(PlacementLocation);
 			}
 		}
 	}
@@ -408,7 +398,8 @@ void APlacementPlayerController::AttemptSelectingEntity()
 			GI->GetInGameUI()->SetSelectionInfoVisibility(true);
 		}
 		LastSelectedMapEntity.Emplace(TracedEntity.GetValue());
-	} else if (LastSelectedMapEntity.IsSet() && LastSelectedMapEntity.GetValue() != nullptr)
+	}
+	else if (LastSelectedMapEntity.IsSet() && LastSelectedMapEntity.GetValue() != nullptr)
 	{
 		// nothing is selected now, need to unselect last item
 		LastSelectedMapEntity.GetValue()->OnDeselected();
@@ -418,5 +409,22 @@ void APlacementPlayerController::AttemptSelectingEntity()
 			GI->GetInGameUI()->ResetSelection();
 		}
 		LastSelectedMapEntity.Reset();
+	}
+}
+
+void APlacementPlayerController::PlayPlacementCameraShake()
+{
+	if (PlayerCameraManager != nullptr && PlacementCameraShakeClass != nullptr)
+	{
+		PlayerCameraManager->StartCameraShake(PlacementCameraShakeClass);
+	}
+}
+
+void APlacementPlayerController::PlayPlacementParticleEffect(FVector Location)
+{
+	UWorld* World = GetWorld();
+	if (World != nullptr)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(World, PlacementNiagaraSystem, Location);
 	}
 }

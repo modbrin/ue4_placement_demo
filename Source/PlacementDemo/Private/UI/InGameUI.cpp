@@ -42,7 +42,7 @@ float UInGameUI::GetSelectedIntegrity()
 {
 	if (SelectedEntity.IsValid())
 	{
-		return SelectedEntity.Get()->GetIntegrity() / 100.f;
+		return SelectedEntity.Get()->GetIntegrity() / 100.f / 2.f; // TODO: temp division by 2
 	}
 	return 0.f;
 }
@@ -50,9 +50,10 @@ float UInGameUI::GetSelectedIntegrity()
 float UInGameUI::GetSelectedNextUnitProgress()
 {
 	UWorld* World = GetWorld();
-	if (World != nullptr)
+	if (SelectedEntity.IsValid())
 	{
-		return FMath::Abs(FMath::Sin(World->GetTimeSeconds()));
+		FTimespan Span = FDateTime::Now() - SelectedEntity.Get()->GetTimeCreated();
+		return FMath::Fmod(Span.GetTotalSeconds() * 10, 100.f) / 100.f;
 	}
 	return 0.f;
 }

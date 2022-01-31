@@ -45,7 +45,8 @@ public: // methods
 	virtual void OnDeselected();
 	virtual void OnConstruction(const FTransform& Transform) override;
 	UFUNCTION(BlueprintGetter)
-	float GetIntegrity();
+	float GetIntegrity() const;
+	FDateTime GetTimeCreated() const;
 
 	FORCEINLINE FMapIndex GetMapIndex() const
 	{
@@ -68,4 +69,5 @@ private: // properties
 	FMapIndex MapIndex;
 	// Goes from 0 to 100.
 	float Integrity;
+	FDateTime TimeCreated;
 };

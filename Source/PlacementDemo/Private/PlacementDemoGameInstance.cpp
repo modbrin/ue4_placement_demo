@@ -94,7 +94,8 @@ void UPlacementDemoGameInstance::ResetMapElemAt(FMapIndex inCoord)
 bool UPlacementDemoGameInstance::IsCellAvailableAtLocation(FVector Location)
 {
 	TOptional<AMapEntity*> MapEntity = GetMapElemAtLocation(Location);
-	return !(MapEntity.IsSet() && IsValid(MapEntity.GetValue()));
+	// location is in allocated grid, but pointer value is not taken 
+	return MapEntity.IsSet() && MapEntity.GetValue() == nullptr;
 }
 
 FMapIndex UPlacementDemoGameInstance::ConvertLocationToMapIndex(FVector Location) const
